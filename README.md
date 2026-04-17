@@ -64,7 +64,7 @@ This dataset is ideal for graph modeling because it naturally represents relatio
 
 ---
 
-## 🚨 Challenges Encountered & Solutions
+##  Challenges Encountered & Solutions
 
 ### 1. CSV Parsing Errors (Quotes Issue)
 
@@ -121,11 +121,49 @@ WITH u, b, collect(r) AS rels
 WHERE size(rels) > 1
 FOREACH (r IN tail(rels) | DELETE r);
 ```
-### Prohect Structure
+
+During the import process, several data quality issues were identified and resolved.
+
+### Issue : Duplicate User Nodes
+
+After importing the dataset, the number of users was significantly higher than expected (~550k vs ~270k).  
+This indicated that user nodes were duplicated due to repeated imports.
+
+---
+
+### Solution: Graph Reconstruction
+
+Instead of attempting in-place merging (which is complex without APOC), the graph was rebuilt using the following approach:
+
+1. Created a new set of user nodes (`UserClean`) using unique `userId` values
+2. Reconnected all relationships from old users to new users
+3. Deleted the original duplicated user nodes
+4. Renamed `UserClean` back to `User`
+
+This ensured:
+- unique user nodes
+- preserved relationships
+- consistent graph structure
+
+---
+### inal Result
+
+After cleaning:
+
+~270k Users (unique)
+~271k Books
+~43k Relationships
+0 duplicate relationships
+
+The graph is now clean, consistent, and ready for analysis.
+
+---
+### Project Structure
 neo4j-book-graph-analysis/
 │
 ├── data/
 ├── queries/
 ├── docs/
 ├── README.md
+
 
